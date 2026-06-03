@@ -1,0 +1,5 @@
+# Not for serving — synthetic/backup data, kept on disk for local use only
+public/data_csv_backup
+public/PortfolioIQ_December2025.pptx
+public/PortfolioIQ_February2026.pptx
+_export_thumbnails.py
