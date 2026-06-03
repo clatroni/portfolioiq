@@ -1,0 +1,5 @@
+VALUE_ID,COLUMN_VALUE,DESCRIPTION
+13,A,Amber: Raises Concerns
+14,G,Green: Satisfactory
+15,R,Red: Unsatisfactory
+-100,Unknown,Unknown

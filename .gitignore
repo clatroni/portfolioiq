@@ -1,0 +1,21 @@
+# ── Sensitive / heavy reference material (NOT part of the solution) ──
+# Internal Deloitte decks, Fabric source archive, original client PPTX (~246MB)
+input/
+
+# ── Generated / working artefacts (rebuilt by the scripts) ──
+scripts/_renderer/
+scripts/_renderer_out/
+website/public/data_csv_backup/
+output/
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ── OS / editor ──
+.DS_Store
+Thumbs.db
+*.tmp

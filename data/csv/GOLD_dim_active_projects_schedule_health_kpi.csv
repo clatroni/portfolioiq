@@ -1,0 +1,6 @@
+VALUE_ID,COLUMN_VALUE
+3,Delayed <= 20%
+4,Delayed > 20%
+5,On Track
+-200,Not Applicable
+-100,Unknown

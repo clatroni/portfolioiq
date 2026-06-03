@@ -1,0 +1,383 @@
+{
+  "period_code": "202601",
+  "period_display": "January 2026",
+  "headline": "100 active projects · 11 flagged · €5.9M exposure",
+  "tiles": [
+    {
+      "value": 201,
+      "label": "Total projects",
+      "sub": "100 active · 101 pending",
+      "accent": "green",
+      "delta": null,
+      "filter": "all"
+    },
+    {
+      "value": 25,
+      "label": "Completed",
+      "sub": "lifetime",
+      "accent": "green",
+      "delta": null,
+      "filter": null
+    },
+    {
+      "value": 12,
+      "label": "Overdue",
+      "sub": "12% of active",
+      "accent": "red",
+      "delta": null,
+      "filter": "overdue"
+    },
+    {
+      "value": "€39.4M",
+      "label": "Committed budget",
+      "sub": "€21.5M active · €18.0M pending",
+      "accent": "green",
+      "delta": null,
+      "filter": null
+    },
+    {
+      "value": "16.5%",
+      "label": "YTD Spend",
+      "sub": "€6.5M of €39.4M",
+      "accent": "amber",
+      "delta": null,
+      "filter": null
+    }
+  ],
+  "schedule": [
+    {
+      "label": "On Track",
+      "value": 19,
+      "color": "green"
+    },
+    {
+      "label": "Delayed ≤20%",
+      "value": 1,
+      "color": "amber"
+    },
+    {
+      "label": "Delayed >20%",
+      "value": 22,
+      "color": "red"
+    },
+    {
+      "label": "No Baseline",
+      "value": 58,
+      "color": "grey"
+    }
+  ],
+  "budget": [
+    {
+      "label": "Long Term Maint.",
+      "legend_label": "Long Term Maintenance",
+      "value_m": 21.5,
+      "pct": 54,
+      "color": "#86BC25"
+    },
+    {
+      "label": "Financial Perf.",
+      "legend_label": "Financial Performance",
+      "value_m": 13.4,
+      "pct": 34,
+      "color": "#5A8000"
+    },
+    {
+      "label": "Betterment",
+      "legend_label": "Betterment",
+      "value_m": 3.9,
+      "pct": 10,
+      "color": "#ED8B00"
+    },
+    {
+      "label": "Safety / Reg.",
+      "legend_label": "Safety / Regulatory",
+      "value_m": 0.7,
+      "pct": 2,
+      "color": "#005EB8"
+    }
+  ],
+  "projects": [
+    {
+      "rag": "Red",
+      "code": "2025-00144",
+      "project": "ST Hydraulic Pumps Replacement",
+      "owner": "Thisvi",
+      "go_live": "TBD",
+      "budget": "€168k",
+      "pct": 5
+    },
+    {
+      "rag": "Red",
+      "code": "2025-00159",
+      "project": "3D HRSG Scanning",
+      "owner": "Technical Services",
+      "go_live": "Dec 2025",
+      "budget": "€0",
+      "pct": 0
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00127",
+      "project": "Steam Turbine Major Inspection",
+      "owner": "Thessaloniki",
+      "go_live": "Jan 2027",
+      "budget": "€4.5M",
+      "pct": 5
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00164",
+      "project": "TIL001121 Auto Tune System Installation at Thisvi Plant",
+      "owner": "Thisvi",
+      "go_live": "TBD",
+      "budget": "€500k",
+      "pct": 10
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00188",
+      "project": "Replacement of High Pressure (HP) and Hot Reheat (HRH) Steam turbine valves.",
+      "owner": "Thessaloniki",
+      "go_live": "Feb 2026",
+      "budget": "€360k",
+      "pct": 10
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00113",
+      "project": "HRSG HRH Vent stop valve replacement & part of pipeline replacement",
+      "owner": "Thessaloniki",
+      "go_live": "TBD",
+      "budget": "€115k",
+      "pct": 10
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00118",
+      "project": "Fuel Gas AGI Flow computer and flow meters replacement",
+      "owner": "Thessaloniki",
+      "go_live": "TBD",
+      "budget": "€110k",
+      "pct": 80
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00157",
+      "project": "Evaporative Cooling Tower (ECT) supply & installation",
+      "owner": "Thisvi",
+      "go_live": "Dec 2025",
+      "budget": "€60k",
+      "pct": 5
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00116",
+      "project": "ST Lube oil mist eliminator upgrade",
+      "owner": "Thessaloniki",
+      "go_live": "TBD",
+      "budget": "€57k",
+      "pct": 70
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00156",
+      "project": "Addition of oil moisture analyser in GT & ST lube oil tanks",
+      "owner": "Thisvi",
+      "go_live": "TBD",
+      "budget": "€30k",
+      "pct": 20
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00117",
+      "project": "Desuperheaters replacement (HP intermediate and HRH Final)",
+      "owner": "Thessaloniki",
+      "go_live": "TBD",
+      "budget": "€0",
+      "pct": 90
+    }
+  ],
+  "summary": {
+    "total": 201,
+    "active": 100,
+    "pending": 101,
+    "completed": 25,
+    "overdue": 12,
+    "rag_count": 11,
+    "exposure_m": 5.9,
+    "budget_total_m": 39.4,
+    "ytd_spend_pct": 16.5,
+    "no_baseline": 58,
+    "schedule_headline_pct": 81,
+    "delayed_gt20": 22
+  },
+  "whatChanged": null,
+  "actionItems": {
+    "subtitle": "3 items require leadership decision",
+    "items": [
+      {
+        "severity": "critical",
+        "title": "Schedule baseline enforcement",
+        "detail": "Mandate schedule baseline submission for the <strong>58 active projects</strong> currently without one. Until then, <strong>81%</strong> of the active portfolio cannot be tracked or recovered.",
+        "owner": "Portfolio PMO Lead",
+        "target": "+1 month"
+      },
+      {
+        "severity": "high",
+        "title": "Stalled project escalation",
+        "detail": "Authorise VP-level review of the <strong>11 flagged projects</strong> carrying <strong>€5.9M exposure</strong>. Concentration risk: a single project may dominate the total.",
+        "owner": "Technical Services VP",
+        "target": "Immediate"
+      },
+      {
+        "severity": "medium",
+        "title": "Activation pipeline capacity",
+        "detail": "Validate PM capacity before approving activation of the <strong>101 pending projects</strong>. Current portfolio already absorbs €39.4M committed budget.",
+        "owner": "Site Leads",
+        "target": "Next quarter"
+      }
+    ]
+  },
+  "takeaway": [
+    "Portfolio showing mixed results; 11 flags · €5.9M exposure.",
+    "81% of active portfolio shows schedule risk (58 without baseline). Budget discipline strong overall; YTD spend at 16.5% of FY budget.",
+    "Immediate action required: prioritize the 11 flagged projects representing €5.9M exposure."
+  ],
+  "schedule_bullets": [
+    "22 projects delayed >20% — schedule recovery required",
+    "58 projects without baseline — submission required to enable tracking",
+    "81% of active portfolio is delayed or lacking schedule visibility"
+  ],
+  "budget_insights": [
+    {
+      "bold": "96% of active within budget",
+      "tail": " — strong fiscal discipline maintained."
+    },
+    {
+      "bold": "4 projects at overrun risk",
+      "tail": " — capped at 300% ceiling exposure."
+    },
+    {
+      "bold": "€5.9M total RAG exposure",
+      "tail": " — spread across 11 flagged projects."
+    },
+    {
+      "bold": "Long Term Maintenance leads at €21.5M",
+      "tail": " — accounting for 54% of the budget."
+    }
+  ],
+  "decision_cards": [
+    {
+      "code": "D1",
+      "severity": "CRITICAL",
+      "title": "SCHEDULE BASELINE ENFORCEMENT",
+      "hero": "Approve mandatory schedule baseline submission for all 58 projects without one.",
+      "context": "Without baseline dates, 81% of active portfolio cannot be tracked.",
+      "owner": "Portfolio PMO Lead",
+      "target": "+1 month"
+    },
+    {
+      "code": "D2",
+      "severity": "HIGH",
+      "title": "STALLED PROJECT ESCALATION",
+      "hero": "Authorise VP-level review of the 11 flagged projects.",
+      "context": "€5.9M exposure concentrated in a few large projects.",
+      "owner": "Technical Services VP",
+      "target": "Immediate"
+    },
+    {
+      "code": "D3",
+      "severity": "MEDIUM",
+      "title": "ACTIVATION PIPELINE",
+      "hero": "Validate PM capacity before Q2 activation of 101 pending projects.",
+      "context": "Current portfolio already absorbs significant committed budget.",
+      "owner": "Site Leads",
+      "target": "+2 months"
+    },
+    {
+      "code": "D4",
+      "severity": "LOW",
+      "title": "BUDGET CALIBRATION",
+      "hero": "Direct Finance to investigate budget-vs-actuals patterns.",
+      "context": "Review of budget assumptions for next FY planning.",
+      "owner": "Finance & Control",
+      "target": "+1 quarter"
+    }
+  ],
+  "key_risks": [
+    {
+      "type": "I",
+      "description": "58 active projects have no schedule baseline — visibility severely limited",
+      "severity": "HIGH",
+      "status": "Identified",
+      "mitigation": "Mandate baseline entry for all active projects",
+      "owner": "Portfolio PMO Lead",
+      "target": "Q1 2026"
+    },
+    {
+      "type": "R",
+      "description": "€5.9M exposure across 11 Red/Amber projects",
+      "severity": "MED",
+      "status": "Identified",
+      "mitigation": "Review top-5 in next SteerCo and escalate worst Reds",
+      "owner": "Technical Services VP",
+      "target": "Next SteerCo"
+    },
+    {
+      "type": "R",
+      "description": "Schedule headline at 81% — significant slippage risk",
+      "severity": "MED",
+      "status": "In Control",
+      "mitigation": "Weekly schedule review with project owners",
+      "owner": "Portfolio PMO Lead",
+      "target": "Ongoing"
+    }
+  ],
+  "at_risk_top5": [
+    {
+      "rag": "Red",
+      "code": "2025-00144",
+      "project": "ST Hydraulic Pumps Replacement",
+      "owner": "Thisvi",
+      "go_live": "TBD",
+      "budget": "€168k",
+      "pct": 5
+    },
+    {
+      "rag": "Red",
+      "code": "2025-00159",
+      "project": "3D HRSG Scanning",
+      "owner": "Technical Services",
+      "go_live": "Dec 2025",
+      "budget": "€0",
+      "pct": 0
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00127",
+      "project": "Steam Turbine Major Inspection",
+      "owner": "Thessaloniki",
+      "go_live": "Jan 2027",
+      "budget": "€4.5M",
+      "pct": 5
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00164",
+      "project": "TIL001121 Auto Tune System Installation at Thisvi Plant",
+      "owner": "Thisvi",
+      "go_live": "TBD",
+      "budget": "€500k",
+      "pct": 10
+    },
+    {
+      "rag": "Amber",
+      "code": "2025-00188",
+      "project": "Replacement of High Pressure (HP) and Hot Reheat (HRH) Steam turbine valves.",
+      "owner": "Thessaloniki",
+      "go_live": "Feb 2026",
+      "budget": "€360k",
+      "pct": 10
+    }
+  ]
+}

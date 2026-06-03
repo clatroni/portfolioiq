@@ -1,0 +1,10 @@
+{
+  "periods": [
+    {
+      "code": "202601",
+      "ymd": "2026-01",
+      "display": "January 2026"
+    }
+  ],
+  "default": "2026-01"
+}

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio IQ · Your Monthly Portfolio Review, Automated · Deloitte</title>
+  <meta name="description" content="Your monthly portfolio review — written, designed, and reviewed by AI. Ready in under a minute." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Libre+Franklin:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="wordmark">DELOITTE&nbsp;·&nbsp;PORTFOLIO<strong>IQ</strong></div>
+    <nav class="nav">
+      <div class="persona-menu">
+        <button id="persona-trigger" class="persona-trigger" aria-haspopup="menu" aria-expanded="false" aria-label="Change view">
+          <span id="persona-trigger-value" class="persona-trigger-value">Deep dive</span>
+          <span class="persona-trigger-arrow" aria-hidden="true">▾</span>
+        </button>
+        <div id="persona-dropdown" class="persona-dropdown hidden" role="menu" aria-labelledby="persona-trigger">
+          <button class="persona-option" data-persona="executive" role="menuitem">
+            <span class="persona-option-label">Executive</span>
+            <span class="persona-option-hint">Headline, what changed, decisions needed</span>
+          </button>
+          <button class="persona-option persona-active" data-persona="deepdive" role="menuitem" aria-current="true">
+            <span class="persona-option-label">Deep dive</span>
+            <span class="persona-option-hint">Full dashboard, charts, filterable project list</span>
+          </button>
+        </div>
+      </div>
+      <a href="#" id="how-link">How it works</a>
+      <button id="chat-toggle" class="nav-ask" aria-label="Open AI assistant">
+        <span class="nav-ask-dot" aria-hidden="true"></span>
+        <span class="nav-ask-text">Ask the AI</span>
+      </button>
+    </nav>
+  </header>
+
+  <main class="single-page">
+
+    <!-- SUMMARY BAR: tool workspace, not a marketing hero -->
+    <section class="summary-bar">
+      <div class="summary-text">
+        <p class="summary-period">
+          <span class="period-label">Reporting period</span>
+          <span class="period-selector" role="tablist" id="period-selector">
+            <!-- populated by JS from public/data/manifest.json — see wirePeriodSelector() -->
+          </span>
+        </p>
+        <h1 class="summary-headline">201 active projects · 13 flagged · €5.9M exposure</h1>
+        <p class="summary-meta">
+          <a href="https://app.fabric.microsoft.com/groups/49d18853-cbaa-483d-b9a6-3af6cbab372b/reports/99b5c629-1bdb-4f52-a4c0-0bc3147c8686/5c6d0d0c4249030301a4?experience=power-bi"
+             target="_blank" rel="noopener noreferrer">View source Power BI dashboard ↗</a>
+        </p>
+      </div>
+      <div class="summary-actions">
+        <a id="dl-summary" href="public/PortfolioIQ_January2026.pptx" class="btn btn-ghost" download data-period-download>
+          <span class="btn-icon">↓</span>
+          <span class="btn-text">Latest deck</span>
+        </a>
+        <button id="generate" class="btn btn-primary">
+          <span class="btn-icon">▶</span>
+          <span class="btn-text">Generate this month's executive deck</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Toast (slides down from summary bar) -->
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <!-- DASHBOARD: supporting evidence behind the AI's narrative -->
+    <section class="dashboard">
+
+      <!-- No big heading here — the summary bar above sets context -->
+
+
+      <!-- KPI TILES (5 across) -->
+      <div class="kpi-grid" id="kpi-grid">
+        <!-- populated by JS -->
+      </div>
+
+      <!-- WHAT CHANGED — populated dynamically per period by JS -->
+      <section class="changed-strip" id="changed-strip">
+        <header class="changed-head">
+          <p class="changed-eyebrow" id="changed-eyebrow">What changed since prior period</p>
+          <span class="changed-badge">
+            <span class="ai-dot"></span>
+            AI assessment · refreshed at month-end close
+          </span>
+        </header>
+        <div class="changed-bullets" id="changed-bullets-root">
+          <!-- populated by renderWhatChanged() -->
+        </div>
+      </section>
+
+      <!-- ACTION ITEMS — executive decisions needing leadership sign-off this cycle.
+           Visible only in Executive + Full personas (hidden for PM by default CSS). -->
+      <section class="action-items-card persona-only-executive">
+        <header class="action-items-head">
+          <div>
+            <p class="dash-card-eyebrow">Decisions needed this cycle</p>
+            <h2 class="action-items-title" id="action-items-title">3 items require leadership decision</h2>
+            <p class="dash-card-sub">AI-prioritized · ranked by severity · refreshed at month-end close</p>
+          </div>
+          <span class="changed-badge">
+            <span class="ai-dot"></span>
+            AI-prioritized
+          </span>
+        </header>
+        <ol class="action-items-list" id="action-items-list">
+          <!-- populated by renderActionItems() -->
+        </ol>
+      </section>
+
+      <!-- TWO-CARD DEEP DIVE -->
+      <div class="dash-row">
+
+        <article class="dash-card">
+          <header class="dash-card-head">
+            <p class="dash-card-eyebrow">DEEP DIVE</p>
+            <h2>Schedule Health</h2>
+            <p class="dash-card-sub">Schedule distribution across <strong>100 active</strong> projects</p>
+          </header>
+          <div class="bars" id="schedule-bars"></div>
+          <p class="dash-card-callout">
+            <strong>81%</strong> of active projects are delayed or lacking schedule visibility
+          </p>
+        </article>
+
+        <article class="dash-card">
+          <header class="dash-card-head">
+            <p class="dash-card-eyebrow">DEEP DIVE</p>
+            <h2>Budget Health</h2>
+            <p class="dash-card-sub">FY2026 budget distribution by category · <strong>€39.5M</strong> total</p>
+          </header>
+          <div class="donut-wrap">
+            <!-- Static donut SVG. r=80, circumference ≈ 502.65. Segments draw clockwise from 12 o'clock thanks to the CSS rotate(-90). -->
+            <svg id="budget-donut" viewBox="0 0 200 200" width="180" height="180" aria-hidden="true">
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#F0EFE9" stroke-width="32"/>
+              <circle class="segment" cx="100" cy="100" r="80" fill="none" stroke-width="32"
+                      stroke="#86BC25" stroke-dasharray="271.43 502.65" stroke-dashoffset="0"/>
+              <circle class="segment" cx="100" cy="100" r="80" fill="none" stroke-width="32"
+                      stroke="#5A8000" stroke-dasharray="170.90 502.65" stroke-dashoffset="-271.43"/>
+              <circle class="segment" cx="100" cy="100" r="80" fill="none" stroke-width="32"
+                      stroke="#ED8B00" stroke-dasharray="50.27 502.65" stroke-dashoffset="-442.33"/>
+              <circle class="segment" cx="100" cy="100" r="80" fill="none" stroke-width="32"
+                      stroke="#005EB8" stroke-dasharray="10.05 502.65" stroke-dashoffset="-492.60"/>
+            </svg>
+            <ul class="donut-legend" id="budget-legend">
+              <li><span class="swatch" style="background:#86BC25"></span><span class="lg-label">Long Term Maintenance</span><span class="lg-value">€21.5M</span><span class="lg-pct">54%</span></li>
+              <li><span class="swatch" style="background:#5A8000"></span><span class="lg-label">Financial Performance</span><span class="lg-value">€13.4M</span><span class="lg-pct">34%</span></li>
+              <li><span class="swatch" style="background:#ED8B00"></span><span class="lg-label">Betterment</span><span class="lg-value">€3.9M</span><span class="lg-pct">10%</span></li>
+              <li><span class="swatch" style="background:#005EB8"></span><span class="lg-label">Safety / Regulatory</span><span class="lg-value">€0.7M</span><span class="lg-pct">2%</span></li>
+            </ul>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- TOP AT-RISK TABLE -->
+      <article class="dash-card dash-table-card">
+        <header class="dash-card-head">
+          <p class="dash-card-eyebrow">RED &amp; AMBER WATCHLIST</p>
+          <h2>Projects requiring attention</h2>
+          <p class="dash-card-sub">
+            <strong>13 projects</strong> flagged · <strong>€5.9M</strong> combined exposure ·
+            <span class="filter-controls">
+              filter:
+              <button class="chip chip-active" data-filter="all">All</button>
+              <button class="chip" data-filter="Red">Red</button>
+              <button class="chip" data-filter="Amber">Amber</button>
+            </span>
+          </p>
+        </header>
+        <div class="table-wrap">
+          <table class="dash-table" id="risk-table">
+            <thead>
+              <tr>
+                <th>RAG</th>
+                <th>Project</th>
+                <th>Owner</th>
+                <th>Go-Live</th>
+                <th>Budget</th>
+                <th>%</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </article>
+
+    </section>
+
+  </main>
+
+  <!-- Chat panel — toggled by the "Ask the AI" button in the header nav -->
+  <aside id="chat-panel" class="chat-panel hidden" aria-hidden="true">
+    <header class="chat-panel-head">
+      <div>
+        <p class="chat-panel-eyebrow">AI ASSISTANT</p>
+        <p class="chat-panel-title">Ask about this portfolio</p>
+      </div>
+      <button id="chat-close" class="chat-panel-close" aria-label="Close">×</button>
+    </header>
+
+    <div class="chat-chips" id="chat-chips">
+      <button class="chat-chip" data-q="Why is 81% of the portfolio delayed?">Why is 81% delayed?</button>
+      <button class="chat-chip" data-q="Which project is most at risk?">Most at-risk</button>
+      <button class="chat-chip" data-q="Summarize this month's takeaway">Summary</button>
+      <button class="chat-chip" data-q="What's our exposure to Red and Amber projects?">Exposure</button>
+      <button class="chat-chip" data-q="Draft a recommendation for the SteerCo">Draft SteerCo update</button>
+    </div>
+
+    <div class="chat-window" id="chat-window">
+      <div class="chat-empty">
+        <span class="ai-dot"></span>
+        <span>Pick a question above, or type your own below.</span>
+      </div>
+    </div>
+
+    <form class="chat-input-row" id="chat-form" autocomplete="off">
+      <input type="text" id="chat-input" placeholder="Ask anything about January 2026..." />
+      <button type="submit" class="btn btn-primary chat-send" aria-label="Send">
+        <span class="btn-icon">→</span>
+      </button>
+    </form>
+  </aside>
+
+  <!-- RESULT MODAL — pops over the page when Generate completes -->
+  <div id="result" class="overlay result-modal hidden" aria-hidden="true">
+    <div class="overlay-card result-card">
+      <button class="close-x" id="result-close" aria-label="Close">×</button>
+      <p class="overlay-eyebrow eyebrow-success">YOUR REPORT IS READY</p>
+      <h3>January 2026 Portfolio Report</h3>
+      <p class="result-meta">
+        <span class="meta-item"><strong>10 slides</strong></span>
+        <span class="dot"></span>
+        <span class="meta-item">Ready in <strong><span id="elapsed">3.8</span>s</strong></span>
+        <span class="dot"></span>
+        <span class="meta-item"><span class="verdict-pass">REVIEWED &amp; APPROVED</span></span>
+      </p>
+
+      <div class="thumbnails" id="thumbnails">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="download-row">
+        <a id="dl-result" href="public/PortfolioIQ_January2026.pptx" class="btn btn-primary btn-large" download data-period-download>
+          <span class="btn-icon">↓</span>
+          <span class="btn-text">Download .pptx</span>
+        </a>
+        <button id="regenerate" class="btn btn-ghost">↻ Generate again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANIMATION OVERLAY -->
+  <div id="overlay" class="overlay hidden" aria-hidden="true">
+    <div class="overlay-card">
+      <p class="overlay-eyebrow">YOUR AI ASSISTANT IS AT WORK</p>
+      <h3>Generating your report...</h3>
+
+      <ol class="steps">
+        <li class="step" data-step="1">
+          <span class="check">○</span>
+          <span class="label">
+            <strong>Read &amp; Analyze</strong>
+            <em>Loading the latest portfolio data...</em>
+          </span>
+        </li>
+        <li class="step" data-step="2">
+          <span class="check">○</span>
+          <span class="label">
+            <strong>Read &amp; Analyze</strong>
+            <em>Reviewing 201 projects across budget, schedule, and risk...</em>
+          </span>
+        </li>
+        <li class="step" data-step="3">
+          <span class="check">○</span>
+          <span class="label">
+            <strong>Draft &amp; Design</strong>
+            <em>Writing the executive summary, key decisions, and recommendations...</em>
+          </span>
+        </li>
+        <li class="step" data-step="4">
+          <span class="check">○</span>
+          <span class="label">
+            <strong>Draft &amp; Design</strong>
+            <em>Building your 10-slide deck in the Deloitte template...</em>
+          </span>
+        </li>
+        <li class="step" data-step="5">
+          <span class="check">○</span>
+          <span class="label">
+            <strong>Review &amp; Approve</strong>
+            <em>Checking every number for accuracy — all checks passed ✓</em>
+          </span>
+        </li>
+      </ol>
+
+      <div class="elapsed-bar">
+        <span>Elapsed</span>
+        <strong><span id="overlay-elapsed">0.0</span>s</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS — modal (opens from header link) -->
+  <div id="how-modal" class="overlay hidden" aria-hidden="true">
+    <div class="overlay-card overlay-card-wide">
+      <button class="close-x" id="how-close" aria-label="Close">×</button>
+      <p class="overlay-eyebrow">HOW IT WORKS</p>
+      <h3>Three steps. Zero manual edits.</h3>
+      <div class="agents-mini">
+        <div class="agent-mini">
+          <strong>01 · Read &amp; Analyze</strong>
+          <p>The AI starts from your Power BI portfolio dashboard — the same one your team uses today. It calculates budget health, schedule slippage, exposure, and projects at risk.</p>
+          <a href="https://app.fabric.microsoft.com/groups/49d18853-cbaa-483d-b9a6-3af6cbab372b/reports/99b5c629-1bdb-4f52-a4c0-0bc3147c8686/5c6d0d0c4249030301a4?experience=power-bi"
+             class="agent-mini-link" target="_blank" rel="noopener noreferrer">↗ See the example source dashboard</a>
+        </div>
+        <div class="agent-mini">
+          <strong>02 · Draft &amp; Design</strong>
+          <p>Writes the executive narrative — takeaways, decisions for leadership, key risks. Builds the full deck in your corporate template.</p>
+        </div>
+        <div class="agent-mini">
+          <strong>03 · Review &amp; Approve</strong>
+          <p>Re-reads the finished deck and checks every number against the source. Flags inconsistencies before the report reaches you.</p>
+        </div>
+      </div>
+      <p class="hint">Powered by Microsoft Fabric and Azure AI · Designed by Deloitte</p>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-row">
+      <span class="wordmark small">DELOITTE&nbsp;·&nbsp;PORTFOLIO<strong>IQ</strong></span>
+      <span class="footer-meta">Deloitte Greece · Data Engineering · 2026</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
