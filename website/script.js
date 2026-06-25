@@ -86,6 +86,14 @@
   let CURRENT_PERIOD = "2026-01";  // overwritten by manifest.default once loaded
   let MANIFEST = null;             // { periods: [{code, ymd, display}, ...], default: "<ymd>" }
 
+  // Where the dashboard JSON lives. Defaults to the bundled public/data/, but can point
+  // at an external store that Fabric publishes to (e.g. Azure Blob / OneLake / CDN) via
+  // window.PIQ_CONFIG.dataBaseUrl — no Fabric auth in the request path; the site just reads.
+  const DATA_BASE = (window.PIQ_CONFIG && window.PIQ_CONFIG.dataBaseUrl)
+    ? String(window.PIQ_CONFIG.dataBaseUrl).replace(/\/+$/, "")
+    : "public/data";
+  const dataUrl = (name) => `${DATA_BASE}/${name}`;
+
   // ----- Bootstrap: load manifest, pick latest period, render -----
   // Falls back to inlined DATA if any fetch fails (e.g. opened from file://).
   (async () => {
@@ -101,7 +109,7 @@
 
   async function loadManifest() {
     try {
-      const r = await fetch("public/data/manifest.json", { cache: "no-store" });
+      const r = await fetch(dataUrl("manifest.json"), { cache: "no-store" });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       MANIFEST = await r.json();
     } catch (e) {
@@ -205,7 +213,7 @@
   // ----- Fetch one period's JSON and patch DATA in place -----
   async function loadPeriod(ymd) {
     try {
-      const r = await fetch(`public/data/${ymd}.json`, { cache: "no-store" });
+      const r = await fetch(dataUrl(`${ymd}.json`), { cache: "no-store" });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = await r.json();
       DATA.tiles       = d.tiles;
@@ -454,11 +462,73 @@
       clearEmpty();
       appendBubble("user", escapeHtml(q));
       const thinking = appendThinking();
-      await sleep(700 + Math.random() * 500);   // simulate think
+      let answer;
+      try {
+        answer = await askAI(q);            // live Azure OpenAI call, grounded on current data
+      } catch (e) {
+        console.warn("AI backend unavailable, using offline answer:", e.message);
+        await sleep(400);                   // brief pause so the fallback still feels considered
+        answer = matchAnswer(q);            // scripted fallback (file://, offline, or no key)
+      }
       thinking.remove();
-      const answer = matchAnswer(q);
       const bubble = appendBubble("ai", "");
       streamHtml(bubble, answer, 12);
+    }
+
+    // Ask the real, published Microsoft Fabric data agent (via the same-origin proxy).
+    // Requires the user to be signed in (MSAL) so their delegated token can be forwarded;
+    // the agent enforces RLS per user and queries the semantic model itself.
+    async function askAI(q) {
+      if (!fabricEnabled()) throw new Error("fabric not configured");
+      const token = await getFabricToken();      // interactive sign-in on first use
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 90000);  // agent runs can take tens of seconds
+      try {
+        const r = await fetch("/api/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({ question: q }),
+          signal: ctrl.signal,
+        });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const j = await r.json();
+        if (!j || !j.answer) throw new Error("empty answer");
+        return sanitizeHtml(j.answer);
+      } finally {
+        clearTimeout(to);
+      }
+    }
+
+    function currentPeriodDisplay() {
+      const m = MANIFEST && MANIFEST.periods
+        ? MANIFEST.periods.find((p) => p.ymd === CURRENT_PERIOD)
+        : null;
+      return (m && m.display) || "the latest period";
+    }
+
+    // Allow only a small set of formatting tags from the model; drop everything else.
+    function sanitizeHtml(html) {
+      const ALLOWED = /^(P|UL|OL|LI|STRONG|EM|BR)$/;
+      const root = document.createElement("div");
+      root.innerHTML = String(html);
+      (function clean(node) {
+        Array.from(node.childNodes).forEach((n) => {
+          if (n.nodeType === 1) {
+            if (ALLOWED.test(n.tagName)) {
+              Array.from(n.attributes).forEach((a) => n.removeAttribute(a.name));
+              clean(n);
+            } else {
+              n.replaceWith(document.createTextNode(n.textContent));
+            }
+          } else if (n.nodeType !== 3) {
+            n.remove();
+          }
+        });
+      })(root);
+      return root.innerHTML;
     }
 
     function clearEmpty() {
@@ -516,6 +586,51 @@
     }[c]));
   }
 
+  // ----- Microsoft Fabric data agent auth (MSAL, delegated user identity) -----
+  // Configuration comes from window.PIQ_CONFIG (see config.example.js). When it's not
+  // present, the chat silently uses the offline scripted fallback instead.
+  let _msalApp = null;
+
+  function fabricEnabled() {
+    const c = window.PIQ_CONFIG;
+    return !!(c && c.clientId && c.tenantId && c.scope && window.msal);
+  }
+
+  function msalApp() {
+    if (_msalApp) return _msalApp;
+    const c = window.PIQ_CONFIG;
+    _msalApp = new window.msal.PublicClientApplication({
+      auth: {
+        clientId: c.clientId,
+        authority: `https://login.microsoftonline.com/${c.tenantId}`,
+        redirectUri: c.redirectUri || window.location.origin,
+      },
+      cache: { cacheLocation: "sessionStorage" },
+    });
+    return _msalApp;
+  }
+
+  // Acquire a delegated token for the Fabric/Power BI scope: silent if possible,
+  // otherwise an interactive popup the first time.
+  async function getFabricToken() {
+    const app = msalApp();
+    if (app.initialize) await app.initialize();          // required by msal-browser v3+
+    const scopes = [window.PIQ_CONFIG.scope];
+    let account = app.getActiveAccount() || app.getAllAccounts()[0];
+    if (!account) {
+      const login = await app.loginPopup({ scopes });
+      account = login.account;
+      app.setActiveAccount(account);
+    }
+    try {
+      const r = await app.acquireTokenSilent({ scopes, account });
+      return r.accessToken;
+    } catch (e) {
+      const r = await app.acquireTokenPopup({ scopes, account });
+      return r.accessToken;
+    }
+  }
+
   // Match a question against known intents and return an HTML answer using real data.
   function matchAnswer(question) {
     const q = question.toLowerCase();
@@ -528,15 +643,6 @@
           <li><strong>58</strong> missing schedule baselines entirely</li>
         </ul>
         <p>The dominant contributor is <strong>missing baselines (58 of 100)</strong> — not actual delay. Enforcing baseline submission would cut the headline in half almost overnight.</p>`;
-    }
-    if (/most|top|risk|red|amber|riskiest|critical/.test(q)) {
-      return `<p>The most material at-risk project is <strong>Steam Turbine Major Inspection</strong> (Amber, Thessaloniki).</p>
-        <ul>
-          <li>CY Budget: <strong>€4.5M</strong> — by far the largest exposure on the watchlist</li>
-          <li>Progress: <strong>5%</strong> complete</li>
-          <li>Target go-live: <strong>Jan 2027</strong></li>
-        </ul>
-        <p>It's <strong>76% of the entire €5.9M Red/Amber exposure</strong>. Recommended action: escalate to PM, validate baseline, confirm 2026 milestone plan.</p>`;
     }
     if (/exposure|expose|euro|€|amount|money/.test(q)) {
       return `<p>Total RAG exposure for January 2026: <strong>€5.9M</strong>, spread across <strong>13 flagged projects</strong>.</p>
@@ -565,6 +671,15 @@
           <li><strong>Safety / Regulatory</strong>: €0.7M (2%)</li>
         </ul>
         <p>96 of 100 active projects within budget. Only <strong>4 at overrun risk</strong> — strong fiscal discipline overall.</p>`;
+    }
+    if (/most|top|risk|red|amber|riskiest|critical/.test(q)) {
+      return `<p>The most material at-risk project is <strong>Steam Turbine Major Inspection</strong> (Amber, Thessaloniki).</p>
+        <ul>
+          <li>CY Budget: <strong>€4.5M</strong> — by far the largest exposure on the watchlist</li>
+          <li>Progress: <strong>5%</strong> complete</li>
+          <li>Target go-live: <strong>Jan 2027</strong></li>
+        </ul>
+        <p>It's <strong>76% of the entire €5.9M Red/Amber exposure</strong>. Recommended action: escalate to PM, validate baseline, confirm 2026 milestone plan.</p>`;
     }
     if (/owner|who|team|responsible|pm|manager/.test(q)) {
       return `<p>The Red/Amber watchlist is concentrated in two sites:</p>
@@ -882,6 +997,10 @@
     overlay.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
 
+    // Kick off a REAL build immediately (renders this period's deck server-side).
+    // Resolves to {url, filename, seconds} or null if no build endpoint (static host).
+    const buildPromise = startLiveBuild();
+
     // Start elapsed-time counter
     const t0 = performance.now();
     const tick = setInterval(() => {
@@ -889,8 +1008,10 @@
       overlayElapsed.textContent = elapsed.toFixed(1);
     }, 50);
 
-    // Walk steps sequentially
-    for (const step of STEPS) {
+    // Animate every step except the last (which we tie to the real render finishing)
+    const lead = STEPS.slice(0, -1);
+    const last = STEPS[STEPS.length - 1];
+    for (const step of lead) {
       const el = document.querySelector(`.step[data-step="${step.id}"]`);
       el.classList.add("active");
       await sleep(step.duration);
@@ -898,20 +1019,63 @@
       el.classList.add("done");
     }
 
-    // Small post-completion pause so the "✓" on step 5 registers
-    await sleep(350);
+    // Final step (QA) stays active until the actual build resolves — honest timing.
+    const lastEl = document.querySelector(`.step[data-step="${last.id}"]`);
+    lastEl.classList.add("active");
+    const [build] = await Promise.all([buildPromise, sleep(last.duration)]);
+    lastEl.classList.remove("active");
+    lastEl.classList.add("done");
+    await sleep(250);
 
     const totalElapsed = ((performance.now() - t0) / 1000).toFixed(1);
     clearInterval(tick);
+
+    // If we got a fresh build, point the download links at it and report its time.
+    if (build) {
+      applyLiveBuild(build);
+      resultElapsed.textContent = build.seconds || totalElapsed;
+    } else {
+      syncDownloadLinks();                 // fall back to the pre-rendered file
+      resultElapsed.textContent = totalElapsed;
+    }
 
     // Dismiss animation overlay
     overlay.classList.add("hidden");
     overlay.setAttribute("aria-hidden", "true");
 
     // Show result modal (overlay-style) — keep body scroll locked
-    resultElapsed.textContent = totalElapsed;
     result.classList.remove("hidden");
     result.setAttribute("aria-hidden", "false");
+  }
+
+  // Ask the local build endpoint to render this period now. Returns a blob URL +
+  // filename + server build seconds, or null if the endpoint isn't available
+  // (e.g. the static Vercel site or `python -m http.server`) — caller falls back.
+  let _lastBlobUrl = null;
+  async function startLiveBuild() {
+    try {
+      const r = await fetch(`/api/generate?period=${encodeURIComponent(CURRENT_PERIOD)}`, {
+        cache: "no-store",
+      });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const blob = await r.blob();
+      const cd = r.headers.get("Content-Disposition") || "";
+      const m = cd.match(/filename="?([^"]+)"?/);
+      const filename = (m && m[1]) || pptxFilenameForCurrent();
+      if (_lastBlobUrl) URL.revokeObjectURL(_lastBlobUrl);
+      _lastBlobUrl = URL.createObjectURL(blob);
+      return { url: _lastBlobUrl, filename, seconds: r.headers.get("X-Build-Seconds") };
+    } catch (e) {
+      console.warn("Live build unavailable, using pre-rendered deck:", e.message);
+      return null;
+    }
+  }
+
+  function applyLiveBuild(build) {
+    document.querySelectorAll("[data-period-download]").forEach((a) => {
+      a.href = build.url;
+      a.setAttribute("download", build.filename);
+    });
   }
 
   // Close result modal — restore body scroll

@@ -22,6 +22,7 @@ import json
 import shutil
 import subprocess
 import sys
+import tempfile
 from copy import deepcopy
 from datetime import date
 from pathlib import Path
@@ -328,6 +329,14 @@ def patch_data_fields(jsons: dict[str, dict], agg: dict, period_info: dict) -> N
     tl["rows"] = timeline_rows
 
 
+def _rel(p: Path) -> str:
+    """Display path relative to BASE when possible, else just the path itself."""
+    try:
+        return str(p.relative_to(BASE))
+    except ValueError:
+        return str(p)
+
+
 def render_period(period_code: str, rows_all: list[dict], lifetime: int) -> Path:
     """Build JSONs, invoke renderer, return path to produced PPTX."""
     info = PERIODS[period_code]
@@ -347,7 +356,7 @@ def render_period(period_code: str, rows_all: list[dict], lifetime: int) -> Path
     values_dir = WORKING / "values"
     for name, data in jsons.items():
         (values_dir / name).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"  wrote 9 per-slide JSONs to {values_dir.relative_to(BASE)}")
+    print(f"  wrote 9 per-slide JSONs to {_rel(values_dir)}")
 
     # Invoke his renderer with an explicit output path so we control the filename
     out_pptx = WORKING.parent / "_renderer_out" / info["filename"]
@@ -366,8 +375,60 @@ def render_period(period_code: str, rows_all: list[dict], lifetime: int) -> Path
     if not out_pptx.exists():
         raise RuntimeError(f"renderer reported success but {out_pptx} missing\n{res.stdout}")
 
-    print(f"  rendered → {out_pptx.relative_to(BASE)} ({out_pptx.stat().st_size:,} bytes)")
+    print(f"  rendered → {_rel(out_pptx)} ({out_pptx.stat().st_size:,} bytes)")
     return out_pptx
+
+
+def _load_joined_rows() -> list[dict]:
+    """Load the fact rows joined to dimensions (shared by main() and build_one())."""
+    dims = load_dims()
+    rows_all = load_csv("GOLD_fct_pcs_report.csv")
+    join_dims(rows_all, dims)
+    return rows_all
+
+
+def _period_lifetimes(lifetime_jan: int) -> dict[str, int]:
+    return {
+        "202512": int(round(lifetime_jan * 0.88)),
+        "202601": lifetime_jan,
+        "202602": int(round(lifetime_jan * 1.08)),
+    }
+
+
+def build_one(period_code: str) -> Path:
+    """Render a single period on demand and copy it to website/public/.
+    Returns the path to the produced .pptx. Used by the live 'Generate' endpoint
+    (scripts/serve_generate.py) so a click renders a fresh deck from the data.
+
+    Renders in a fresh temp dir OUTSIDE OneDrive to avoid the file-lock that breaks
+    rmtree on the in-repo working tree.
+    """
+    global WORKING
+    if period_code not in PERIODS:
+        raise ValueError(f"unknown period {period_code!r}")
+    if not HIS_SPEC.exists():
+        raise RuntimeError(f"renderer spec folder not found: {HIS_SPEC}")
+
+    rows_all = _load_joined_rows()
+    lifetimes = _period_lifetimes(lifetime_completed_count())
+    present = {r["REF_PERIOD"] for r in rows_all if r.get("REF_PERIOD")}
+    if period_code not in present:
+        raise RuntimeError(
+            f"period {period_code} not in source data (present: {sorted(present)})"
+        )
+
+    tmp_root = Path(tempfile.mkdtemp(prefix="piq_render_"))
+    WORKING = tmp_root / "_renderer"          # render_period() reads this global
+    try:
+        shutil.copytree(HIS_SPEC, WORKING)    # fresh working copy in temp (no rmtree race)
+        produced = render_period(period_code, rows_all, lifetimes.get(period_code))
+        dest = PUBLIC / PERIODS[period_code]["filename"]
+        if dest.exists():
+            dest.unlink()
+        shutil.copy2(produced, dest)
+        return dest
+    finally:
+        shutil.rmtree(tmp_root, ignore_errors=True)
 
 
 def main():

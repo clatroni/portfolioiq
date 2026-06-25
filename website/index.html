@@ -340,6 +340,10 @@
     </div>
   </footer>
 
+  <!-- Microsoft Fabric data agent sign-in (optional). MSAL + local config.
+       If config.js is absent or incomplete, the assistant uses its offline fallback. -->
+  <script src="https://unpkg.com/@azure/msal-browser@3/lib/msal-browser.min.js"></script>
+  <script src="config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
