@@ -352,17 +352,13 @@ def build(ymd: str) -> Path:
     data = json.loads(jf.read_text(encoding="utf-8"))
     prs = render(data)
     disp = data.get("period_display", ymd).replace(" ", "")
-    out = PUBLIC / f"PortfolioIQ_{disp}.pptx"
-    try:
-        prs.save(str(out))
-        return out
-    except PermissionError:
-        # Canonical file is locked (e.g. open in PowerPoint). Return a temp copy so the
-        # download still works instead of failing the whole request.
-        import tempfile
-        tmp = Path(tempfile.gettempdir()) / f"PortfolioIQ_{disp}.pptx"
-        prs.save(str(tmp))
-        return tmp
+    # IMPORTANT: write to a temp file, never to website/public/PortfolioIQ_*.pptx.
+    # Those are the curated decks the site serves as the static download / fallback;
+    # the live endpoint just streams the bytes from the path we return here.
+    import tempfile
+    out = Path(tempfile.gettempdir()) / f"PortfolioIQ_{disp}_live.pptx"
+    prs.save(str(out))
+    return out
 
 
 if __name__ == "__main__":
