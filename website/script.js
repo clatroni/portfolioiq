@@ -94,6 +94,17 @@
     : "public/data";
   const dataUrl = (name) => `${DATA_BASE}/${name}`;
 
+  // Enable the "View source Power BI dashboard" link when a report URL is configured.
+  const pbiLink = document.getElementById("pbiSourceLink");
+  const pbiUrl = window.PIQ_CONFIG && window.PIQ_CONFIG.pbiReportUrl;
+  if (pbiLink && pbiUrl) {
+    pbiLink.href = pbiUrl;
+    pbiLink.target = "_blank";
+    pbiLink.rel = "noopener";
+    pbiLink.removeAttribute("onclick");
+    pbiLink.removeAttribute("aria-disabled");
+  }
+
   // ----- Bootstrap: load manifest, pick latest period, render -----
   // Falls back to inlined DATA if any fetch fails (e.g. opened from file://).
   (async () => {
